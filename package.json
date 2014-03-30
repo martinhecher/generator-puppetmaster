@@ -1,13 +1,13 @@
 {
   "name": "generator-puppetmaster",
-  "version": "0.0.0",
-  "description": "Yeoman generator",
+  "version": "0.2.0",
+  "description": "'puppetmaster' allows you to cast your recurring development tasks into code for easy reuse.",
   "license": "MIT",
   "main": "app/index.js",
   "repository": "martinhecher/generator-puppetmaster",
   "author": {
     "name": "Martin Hecher",
-    "email": "martin.hecher@fraunhofer.at",
+    "email": "martin.hecher.g@gmail.com",
     "url": "https://github.com/martinhecher"
   },
   "engines": {
@@ -17,14 +17,17 @@
     "test": "mocha"
   },
   "files": [
-    "app"
+    "app",
+    "fetch"
   ],
   "keywords": [
     "yeoman-generator"
   ],
   "dependencies": {
     "yeoman-generator": "~0.16.0",
-    "chalk": "~0.4.0"
+    "chalk": "~0.4.0",
+    "path": "~0.4.9",
+    "util": "~0.10.3"
   },
   "devDependencies": {
     "mocha": "*"
