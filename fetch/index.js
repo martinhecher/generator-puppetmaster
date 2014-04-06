@@ -50,7 +50,7 @@ var FetchGenerator = yeoman.generators.NamedBase.extend({
 
 			// Yeah, thanks http://passy.svbtle.com/partial-application-in-javascript-using-bind ;-)
 			git.on('close', onGitClose.bind(this, repo_name));
-			git.stdout.on('data', onGitOutput.bind(this, 'stdout'));
+			// git.stdout.on('data', onGitOutput.bind(this, 'stdout'));
 			git.stderr.on('data', onGitOutput.bind(this, 'stderr'));
 		}
 	}

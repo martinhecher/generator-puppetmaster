@@ -15,7 +15,8 @@ var PuppetmasterGenerator = yeoman.generators.Base.extend({
       }
     });
 
-    this.pkg = JSON.parse(this.readFileAsString(path.join(__dirname, '../package.json')));
+    this.pkg = require(path.join(this.destinationRoot(), 'package.json'));
+    // console.log(JSON.stringify(this.pkg, null, 4));
   },
 
   greet: function() {
@@ -23,22 +24,40 @@ var PuppetmasterGenerator = yeoman.generators.Base.extend({
     this.log(chalk.magenta("Thank's for using the fantastic 'Puppetmaster' generator. Dobar tek i uživaj!"));
   },
 
-  askFor: function() {
+  checkConfig: function() {
     var cb = this.async();
 
-    // TODO: ask for dependent projects and write them to puppetmaster.json/package.json
-    var prompts = [{
-      name: 'blogName',
-      message: 'What do you want to call your blog?'
-    }];
+    var prompts = [];
+
+    if (typeof this.pkg.projects !== 'undefined' &&
+      this.pkg.projects.repos.length) {
+      prompts.push({
+        type: 'confirm',
+        name: 'fetchProjects',
+        message: 'We found a configured environment, do you want to fetch the projects?',
+        default: true
+      });
+    }
 
     this.prompt(prompts, function(props) {
-      // `props` is an object passed in containing the response values, named in
-      // accordance with the `name` property from your prompt object. So, for us:
-      this.blogName = props.blogName;
+      this.fetchProjects = props.fetchProjects;
 
       cb();
     }.bind(this));
+  },
+
+  fetchProjects: function() {
+    if (this.fetchProjects) {
+      this.log(chalk.magenta("Let's install those projects now!"));
+
+      this.invoke("puppetmaster:fetch", {
+        args: ['all'],
+        options: {
+          nested: true,
+          appName: this.appName
+        }
+      });
+    }
   }
 });
 
