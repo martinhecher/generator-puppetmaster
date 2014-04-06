@@ -14,13 +14,31 @@ var PuppetmasterGenerator = yeoman.generators.Base.extend({
         this.installDependencies();
       }
     });
+
+    this.pkg = JSON.parse(this.readFileAsString(path.join(__dirname, '../package.json')));
   },
 
   greet: function() {
     this.log(this.yeoman);
-    this.log(chalk.magenta("Thank's for using the fantastic Puppetmaster generator. Have fun i uživaj!"));
+    this.log(chalk.magenta("Thank's for using the fantastic 'Puppetmaster' generator. Dobar tek i uživaj!"));
+  },
 
-    // TODO: ask for dependent projects and write them to package.json
+  askFor: function() {
+    var cb = this.async();
+
+    // TODO: ask for dependent projects and write them to puppetmaster.json/package.json
+    var prompts = [{
+      name: 'blogName',
+      message: 'What do you want to call your blog?'
+    }];
+
+    this.prompt(prompts, function(props) {
+      // `props` is an object passed in containing the response values, named in
+      // accordance with the `name` property from your prompt object. So, for us:
+      this.blogName = props.blogName;
+
+      cb();
+    }.bind(this));
   }
 });
 

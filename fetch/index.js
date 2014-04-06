@@ -15,7 +15,7 @@ var FetchGenerator = yeoman.generators.NamedBase.extend({
 		// TODO: error handling
 		this.pkg = require(path.join(this.destinationRoot(), 'package.json'));
 
-		this.log(chalk.magenta('Jednu "konnector:' + this.name + '", molim. I tri kugle sladoleda!'));
+		this.log(chalk.magenta('Jednu "konnector:' + this.name + '", molim. I tri kugle sladoled!'));
 	},
 
 	fetchRepos: function() {
@@ -33,6 +33,14 @@ var FetchGenerator = yeoman.generators.NamedBase.extend({
 			}
 		}
 
+		function onGitOutput(type, data) {
+			if (type === 'stdout') {
+				this.log(chalk.white(data));
+			} else if (type === 'stderr') {
+				this.log(chalk.red(data));
+			}
+		}
+
 		for (var idx = 0; idx < repos.length; idx++) {
 			// TODO: support for other providers (factory/registry?)
 			var repo_name = repos[idx],
@@ -42,14 +50,8 @@ var FetchGenerator = yeoman.generators.NamedBase.extend({
 
 			// Yeah, thanks http://passy.svbtle.com/partial-application-in-javascript-using-bind ;-)
 			git.on('close', onGitClose.bind(this, repo_name));
-
-			// git.stdout.on('data', function(data) {
-			// 	this.log(chalk.green('Fetched "' + repo_name + '".'));
-			// }.bind(this));
-
-			// git.stderr.on('data', function(data) {
-			// 	this.log(chalk.red('Something went wrong while fetching "' + repo_name + '".'));
-			// }.bind(this));
+			git.stdout.on('data', onGitOutput.bind(this, 'stdout'));
+			git.stderr.on('data', onGitOutput.bind(this, 'stderr'));
 		}
 	}
 });
