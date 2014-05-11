@@ -1,29 +1,36 @@
 'use strict';
-var util = require('util');
-var path = require('path');
-var chalk = require('chalk');
-var yeoman = require('yeoman-generator');
+var util = require('util'),
+	path = require('path'),
+	chalk = require('chalk'),
+	yeoman = require('yeoman-generator'),
+	spawn = require('child_process').spawn;
 
 
-var FetchGenerator = yeoman.generators.NamedBase.extend({
+var FetchGenerator = yeoman.generators.Base.extend({
 	init: function() {
-		if (typeof this.name === 'undefined') {
-			console.log('You have not specified a configuration, proceeding with "all"');
-			this.name = 'all';
+		this.argument('workspaces', {
+			type: Array,
+			required: false
+		});
+
+		if (!this.workspaces) {
+			this.workspaces = ['default'];
 		}
+		this.log(chalk.green('Requesting workspaces: ' + JSON.stringify(this.workspaces)));
 
-		// TODO: error handling
-		this.pkg = require(path.join(this.destinationRoot(), 'package.json'));
+		var filename = 'package.json',
+			namespace = 'puppetmaster';
 
-		this.log(chalk.magenta('Jednu "konnector:' + this.name + '", molim. I tri kugle sladoled!'));
+		this.fetchedRepos = {};
+
+		this._readConfig(filename, namespace);
+
+		this.log(chalk.magenta('Jednu projektu, molim. I tri kugle sladoleda!'));
 	},
 
 	fetchRepos: function() {
-		var repos = this.pkg.projects.repos,
-			path = this.pkg.projects.path;
-
-		// TODO: error handling
-		this.mkdir(path);
+		var global_settings = this.config['globalSettings'],
+			workspaces = null;
 
 		function onGitClose(reponame, code) {
 			if (!code) {
@@ -41,18 +48,88 @@ var FetchGenerator = yeoman.generators.NamedBase.extend({
 			}
 		}
 
-		for (var idx = 0; idx < repos.length; idx++) {
-			// TODO: support for other providers (factory/registry?)
-			var repo_name = repos[idx],
-				gitrepo = 'git@gitlab.com:konnektor/' + repo_name + '.git',
-				spawn = require('child_process').spawn,
-				git = spawn('git', ['clone', gitrepo, path + '/' + repos[idx]]);
+		workspaces = this._selectWorkspaces();
 
-			// Yeah, thanks http://passy.svbtle.com/partial-application-in-javascript-using-bind ;-)
-			git.on('close', onGitClose.bind(this, repo_name));
-			// git.stdout.on('data', onGitOutput.bind(this, 'stdout'));
-			git.stderr.on('data', onGitOutput.bind(this, 'stderr'));
+		for (var idx0 = 0; idx0 < workspaces.length; idx0++) {
+			var workspace = workspaces[idx0],
+				id = workspace.id || 'default',
+				settings = workspace.settings,
+				projects = workspace.projects;
+
+			// TODO: error handling
+			this.mkdir(settings.localRoot || global_settings.localRoot);
+
+			for (var idx = 0; idx < projects.length; idx++) {
+				var project = projects[idx];
+
+				// 'project' can be either a single string or an object which contains
+				// additional info:
+				// console.log('type: ' + (typeof project));
+
+				var repo_name = null,
+					repo_endpoint = null,
+					local_root = settings.localRoot || global_settings.localRoot;
+
+				// TODO: support for other providers (factory/registry?)
+				if (typeof project === 'string') {
+					// console.log('project: ' + project);
+					repo_name = project;
+					repo_endpoint = (settings.defaultNamespace || global_settings.defaultNamespace) + '/' + repo_name;
+				} else if (typeof project === 'object') {
+					// console.log('project: ' + JSON.stringify(project));
+					repo_name = project.id;
+					repo_endpoint = project.url || (settings.defaultNamespace || global_settings.defaultNamespace) + '/' + repo_name;
+					local_root = project.localRoot || local_root;
+				}
+
+				if (!this.fetchedRepos[repo_endpoint]) {
+					this.log(chalk.green('Fetching "' + repo_endpoint + '" into folder: "' + local_root + '/' + repo_name + '" ...'));
+
+					var git = spawn('git', ['clone', repo_endpoint, local_root + '/' + repo_name]);
+					this.fetchedRepos[repo_endpoint] = 'unnused';
+
+					// TODO: provide better stdout/stderr output interpretation!
+
+					// Yeah, thanks http://passy.svbtle.com/partial-application-in-javascript-using-bind ;-)
+					git.on('close', onGitClose.bind(this, repo_name));
+					// git.stdout.on('data', onGitOutput.bind(this, 'stdout'));
+					git.stderr.on('data', onGitOutput.bind(this, 'stderr'));
+				}
+			}
 		}
+	},
+
+	_readConfig: function(filename, namespace) {
+		// TODO: error handling
+		this.pkg = require(path.join(this.destinationRoot(), filename));
+		this.config = this.pkg[namespace];
+	},
+
+	_selectWorkspaces: function() {
+		var res = [];
+
+		if (this.workspaces[0] === 'all') {
+			return this.config['workspaces'];
+		}
+
+		for (var idx0 = 0; idx0 < this.workspaces.length; idx0++) {
+			var name = this.workspaces[idx0],
+				cur_length = res.length;
+
+			for (var idx = 0; idx < this.config['workspaces'].length; idx++) {
+				var workspace = this.config['workspaces'][idx];
+				if (workspace.id === name) {
+					res.push(workspace);
+					continue;
+				}
+			}
+
+			if (cur_length === res.length) {
+				this.log(chalk.red('Workspace "' + name + '" is not configured, skipping request.'));
+			}
+		};
+
+		return res;
 	}
 });
 
