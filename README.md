@@ -107,38 +107,54 @@ will fetch the 'main' workspace and the 'testing' workspace, if available in the
 
 The 'package.json' example in the 'Creating a new project' section is one supported format of how to configure 'puppetmaster'. Under the hood the workspace configuration is more flexible, to (hopefully) catch many use cases of today's webdevelopment. The configuration below shows a more elaborated example on how to configure a project:
 
-'''json
-"workspaces": [{
-            "id": "default",
-            "settings": {
-                "defaultNamespace": "git@myserver.com:martin.hecher",
-                "localRoot": projects
-            },
-            "projects": [
-                "app-standalone",
-                "app-framework"
-            ]
-        }, {
-            "id": "myfeature",
-            "settings": {
-                "localRoot": "projects/myfeature"
-            },
-            "projects": [{
-                "id": "app-standalone",
-                "url": "git@myserver.com:martinhecher/app-standalone.git"
-            },{
-                "id": "app-framework",
-                "url": "git@myserver.com:martinhecher/app-standalone.git"
-            }]
-        }, {
-            "id": "external-libs",
-            "projects": [{
-                "id": "generator-puppetmaster",
-                "url": "git@github.com:martinhecher/generator-puppetmaster.git",
-                "localRoot": "external-libs"
-            }]
+```json
+{ "workspaces": [{
+        "id": "default",
+        "settings": {
+            "defaultNamespace": "git@myserver.com:martin.hecher",
+            "localRoot": "projects"
+        },
+        "projects": [
+            "app-standalone",
+            "app-framework"
+        ]
+    }, {
+        "id": "myfeature",
+        "settings": {
+            "localRoot": "projects/myfeature"
+        },
+        "projects": [{
+            "id": "app-standalone",
+            "url": "git@myserver.com:martinhecher/app-standalone.git"
+        },{
+            "id": "app-framework",
+            "url": "git@myserver.com:martinhecher/app-standalone.git"
         }]
-'''
+    }, {
+        "id": "external-libs",
+        "projects": [{
+            "id": "generator-puppetmaster",
+            "url": "git@github.com:martinhecher/generator-puppetmaster.git",
+            "localRoot": "external-libs"
+        }]
+    }]
+}
+```
+
+The above example uses the most general form of a sub-project configuration in the 'myfeature' and the 'external-libs' workspace:
+
+```json
+{
+    "id": "external-libs",
+    "projects": [{
+        "id": "generator-puppetmaster",
+        "url": "git@github.com:martinhecher/generator-puppetmaster.git",
+        "localRoot": "external-libs"
+    }]
+}
+```
+
+Here the 'projects' array consists of objects, each with an 'id', 'url', and 'localRoot' property. In the 'default' workspace configuration those options are automatically derived from the 'settings' object, in the 'external-libs' workspace those options are explicitly given. Local configuration overrides global configuration.
 
 ## License
 
