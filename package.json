@@ -1,6 +1,6 @@
 {
   "name": "generator-puppetmaster",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "'puppetmaster' allows you to cast your recurring development tasks into code for easy reuse.",
   "license": "MIT",
   "main": "app/index.js",
