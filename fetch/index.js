@@ -20,15 +20,23 @@ var FetchGenerator = yeoman.generators.Base.extend({
             this.workspaces = ['default'];
         }
 
-        var filename = 'package.json',
-            namespace = 'puppetmaster';
         this.defaultLocalRoot = 'projects';
-
         this.fetchedRepos = {};
+    },
 
-        this._readConfig(filename, namespace);
+    initConfigParser: function() {
+        var filename = path.join(this.destinationRoot(), './package.json'),
+            filename_generator = path.join(__dirname, '../package.json'),
+            namespace = 'puppetmaster';
 
-        this.log(chalk.magenta('Using "generator-puppetmaster" version: v' + this.pkgPM.version));
+        this.pkg = this._readJSONConfig(filename, namespace);
+        this.config = this.pkg[namespace];
+
+        this.pkgGenerator = this._readJSONConfig(filename_generator, namespace);
+    },
+
+    info: function() {
+        this.log(chalk.magenta('Using "generator-puppetmaster" version: v' + this.pkgGenerator.version));
         this.log(chalk.magenta('Jednu projektu, molim. I tri kugle sladoleda!'));
         this.log(chalk.magenta('Requesting workspaces: ' + JSON.stringify(this.workspaces)) + '\n');
     },

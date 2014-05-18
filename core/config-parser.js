@@ -1,22 +1,12 @@
 'use strict';
-var util = require('util');
-var path = require('path');
-var _ = require('underscore');
-var chalk = require('chalk');
+var path = require('path'),
+  _ = require('underscore');
 
 
 var ConfigParser = _.extend({}, {
-  _readConfig: function(filename, namespace) {
+  _readJSONConfig: function(filename, namespace) {
     // TODO: error handling
-    this.pkg = JSON.parse(this.readFileAsString(
-      path.join(this.destinationRoot(), './package.json')
-    ));
-
-    this.pkgPM = JSON.parse(this.readFileAsString(
-      path.join(__dirname, '../package.json')
-    ));
-
-    this.config = this.pkg[namespace];
+    return JSON.parse(this.readFileAsString(filename));
   },
 
   _selectWorkspaces: function() {
