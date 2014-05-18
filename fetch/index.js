@@ -1,10 +1,12 @@
 'use strict';
-var util = require('util'),
+var _ = require('underscore'),
+    util = require('util'),
     path = require('path'),
     chalk = require('chalk'),
     yeoman = require('yeoman-generator'),
     spawn = require('child_process').spawn,
-    gitutil = require('git-utils');
+    gitutil = require('git-utils'),
+    ConfigParser = require('../core/config-parser');
 
 
 var FetchGenerator = yeoman.generators.Base.extend({
@@ -31,7 +33,7 @@ var FetchGenerator = yeoman.generators.Base.extend({
         this.log(chalk.magenta('Requesting workspaces: ' + JSON.stringify(this.workspaces)) + '\n');
     },
 
-    fetchRepos: function() {
+    fetch: function() {
         var global_settings = this.config['globalSettings'] || {},
             workspaces = null;
 
@@ -115,47 +117,9 @@ var FetchGenerator = yeoman.generators.Base.extend({
                 this.log(chalk.green('\nTo update repositories that already existed use "yo puppetmaster:pull all" to fetch their latest revision.'));
             }
         }
-    },
-
-    _readConfig: function(filename, namespace) {
-        // TODO: error handling
-        this.pkg = JSON.parse(this.readFileAsString(
-            path.join(this.destinationRoot(), './package.json')
-        ));
-
-        this.pkgPM = JSON.parse(this.readFileAsString(
-            path.join(__dirname, '../package.json')
-        ));
-
-        this.config = this.pkg[namespace];
-    },
-
-    _selectWorkspaces: function() {
-        var res = [];
-
-        if (this.workspaces[0] === 'all') {
-            return this.config['workspaces'];
-        }
-
-        for (var idx0 = 0; idx0 < this.workspaces.length; idx0++) {
-            var name = this.workspaces[idx0],
-                cur_length = res.length;
-
-            for (var idx = 0; idx < this.config['workspaces'].length; idx++) {
-                var workspace = this.config['workspaces'][idx];
-                if (workspace.id === name) {
-                    res.push(workspace);
-                    continue;
-                }
-            }
-
-            if (cur_length === res.length) {
-                this.log(chalk.red('Workspace "' + name + '" is not configured, skipping request.'));
-            }
-        };
-
-        return res;
     }
 });
+
+_.extend(FetchGenerator.prototype, ConfigParser);
 
 module.exports = FetchGenerator;
