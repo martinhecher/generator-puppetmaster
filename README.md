@@ -1,20 +1,19 @@
 # generator-puppetmaster
 
-This [Yeoman](http://yeoman.io) generator is a helper tool that manages development projects that are build up on multiple sub-projects which are stored somewhere on the web (e.g. github, gitlab, subversion server, etc.). 'puppetmaster' takes care of 
+This [Yeoman](http://yeoman.io) generator is a tool that manages software projects existing of multiple sub-projects. The idea is to have all sub-projects stored in (currently git-base) repositories and to have one project that is the 'parent' project, holding together the sub-projects. The parent project holds a configuration file ('package.json') that describes which sub-projects contribute to the whole project and how they are configured (e.g. name, repository location). 
 
-* fetching, 
-* updating,
-* etc.
+Sub-projects can be separated into so called 'workspaces'. This allows for a flexible management of projects in a team, where there are different responsibilities within the team. For instance, if you project consists of a data backend server and a web-based frontend there could be two workspaces called 'backend' and 'frontend', containing different sub-projects each. The database developers only need to cope with the  'backend' workspace, the frontend developers will work with the 'frontend' workspace. This separation allows for a clean separation between responsibilities in the project.
 
-of all sub-projects via the Yeoman generator interface (see below for concrete examples). Moreover, 'puppetmaster' is (or will be, depending on the feature) capable of
+The current version of 'puppetmaster' takes care of 
+
+* fetching and
+* updating
+
+git-based workspaces (see below for concrete examples). In future versions 'puppetmaster' will be capable of
 
 * generating a single release out of all sub-projects,
 * easy creation (via the command line) of new projects on different platforms (e.g. github, gitlab, etc.)
-* integrating custom task that you need for your workflow.
-
-The 'puppetmaster' generator is configured via the 'package.json' file of a project.
-
-NOTE: The current version (v0.3.0) supports the 'fetch' operation for 'git' based repositories. The project is constantly improving, though, as I actively use it to manage my web-development projects.
+* integrating custom task that you need for your workflow (e.g. resetting a database, deploy to heroku, etc.)
 
 If you have ideas for useful operations 'puppetmaster' should support, feel free to open an issue or fork the repository and implement a new feature. It's really easy, have a look at [Yeoman Generator Documentation] (http://yeoman.io/generators.html).
 
@@ -32,11 +31,11 @@ to install the generator.
 
 ### Creating a new project
 
-Create a new folder and execute
+Create a new 'parent' folder and execute
 
 > npm init
 
-within that folder. This will create a 'package.json' file in the folder with the provided information. We will use this 'package.json' file to configure our 'multi-project' environment. Open the file and add a section 'puppetmaster' to it. Within this section we add our first so called 'workspace' (for more information on workspaces see the following sections). Your result will look very similar to this content, which is a fully working project named 'my-puppetmaster-project' with two sub-projects 'generator-puppetmaster' and 'tomato':
+within that folder. This will create a 'package.json' file in the folder with the provided information. We will use this 'package.json' file to configure our 'multi-workspace' environment. Open the file and add a section 'puppetmaster' to it. Within this section we add our first workspace (for more information on workspaces see the following sections). Your result will look very similar to this content, which is a fully working project named 'my-puppetmaster-project' with two sub-projects 'generator-puppetmaster' and 'tomato':
 
 ```json
 {
