@@ -1,5 +1,6 @@
 'use strict';
 var path = require('path'),
+  chalk = require('chalk'),
   _ = require('underscore');
 
 

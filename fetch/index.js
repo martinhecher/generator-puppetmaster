@@ -5,8 +5,7 @@ var _ = require('underscore'),
     chalk = require('chalk'),
     spawn = require('child_process').spawn,
     gitutil = require('git-utils'),
-    puppetmaster = require('../core/sub-generator');
-
+    puppetmaster = require('../core/puppetmaster');
 
 var FetchGenerator = puppetmaster.SubGenerator.extend({
     init: function() {
