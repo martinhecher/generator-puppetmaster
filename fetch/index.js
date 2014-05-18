@@ -18,7 +18,10 @@ var FetchGenerator = puppetmaster.SubGenerator.extend({
         this._initSubGenerator();
 
         this.defaultLocalRoot = 'projects';
-        this.fetchedRepos = {};
+
+        // If multiple workspaces with the same projects are fetched this member
+        // allows for handling the case:
+        // this.fetchedRepos = {};
     },
 
     info: function() {
@@ -61,7 +64,7 @@ var FetchGenerator = puppetmaster.SubGenerator.extend({
             this.log(chalk.green('Fetching "' + repo_url + '" into folder: "' + local_root + '/' + repo_name + '" ...'));
 
             var git = spawn('git', ['clone', repo_url, local_root + '/' + repo_name]);
-            this.fetchedRepos[repo_url] = 'unnused';
+            // this.fetchedRepos[repo_url] = 'unnused';
 
             // TODO: provide better stdout/stderr output interpretation!
 
