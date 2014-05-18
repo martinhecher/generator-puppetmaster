@@ -28,9 +28,6 @@ var FetchGenerator = puppetmaster.SubGenerator.extend({
     },
 
     fetch: function() {
-        var global_settings = this.config['globalSettings'] || {},
-            workspaces = null;
-
         function onGitClose(reponame, code) {
             if (!code) {
                 this.log(chalk.green('Fetched "' + reponame + '".'));
@@ -47,69 +44,35 @@ var FetchGenerator = puppetmaster.SubGenerator.extend({
             }
         }
 
-        workspaces = this._selectWorkspaces(this.config, this.workspaces);
+        var virgin_checkout = true;
 
-        for (var idx0 = 0; idx0 < workspaces.length; idx0++) {
-            var workspace = workspaces[idx0],
-                id = workspace.id || 'default',
-                settings = workspace.settings || {},
-                projects = workspace.projects;
+        this._mapOnWorkspaceProjects(function(repo_url, local_root, repo_name) {
+            // console.log('fetching: ' + url + ' into ' + local_root + '/' + repo_name);
 
-            // TODO: error handling
-            var local_root_dir = settings.localRoot || global_settings.localRoot || this.defaultLocalRoot;
-            this.mkdir(local_root_dir);
+            // First check if the repository already exists at the endpoint:
+            var repository = gitutil.open(path.join(local_root, repo_name));
 
-            for (var idx = 0; idx < projects.length; idx++) {
-                var project = projects[idx];
-
-                // 'project' can be either a single string or an object which contains
-                // additional info:
-                // console.log('type: ' + (typeof project));
-
-                var repo_name = null,
-                    repo_endpoint = null,
-                    local_root = settings.localRoot || global_settings.localRoot,
-                    fresh_checkout = true;
-
-                // TODO: support for other providers (factory/registry?)
-                if (typeof project === 'string') {
-                    // console.log('project: ' + project);
-                    repo_name = project;
-                } else if (typeof project === 'object') {
-                    // console.log('project: ' + JSON.stringify(project));
-                    repo_name = project.id;
-                    local_root = project.localRoot || local_root;
-                }
-
-                repo_endpoint = project.url || (settings.defaultNamespace || global_settings.defaultNamespace) + '/' + repo_name;
-
-                if (!this.fetchedRepos[repo_endpoint]) {
-                    // First check if the repository already exists at the endpoint:
-                    var repository = gitutil.open(path.join(local_root, repo_name));
-
-                    if (repository) {
-                        console.log('Repository "' + repo_name + '" already exists, leaving as is.');
-                        fresh_checkout = false;
-                        continue;
-                    }
-
-                    this.log(chalk.green('Fetching "' + repo_endpoint + '" into folder: "' + local_root + '/' + repo_name + '" ...'));
-
-                    var git = spawn('git', ['clone', repo_endpoint, local_root + '/' + repo_name]);
-                    this.fetchedRepos[repo_endpoint] = 'unnused';
-
-                    // TODO: provide better stdout/stderr output interpretation!
-
-                    // Yeah, thanks http://passy.svbtle.com/partial-application-in-javascript-using-bind ;-)
-                    git.on('close', onGitClose.bind(this, repo_name));
-                    // git.stdout.on('data', onGitOutput.bind(this, 'stdout'));
-                    git.stderr.on('data', onGitOutput.bind(this, 'stderr'));
-                }
+            if (repository) {
+                console.log('Repository "' + repo_name + '" already exists, leaving as is.');
+                virgin_checkout = false;
+                return;
             }
 
-            if (!fresh_checkout) {
-                this.log(chalk.green('\nTo update repositories that already existed use "yo puppetmaster:pull all" to fetch their latest revision.\n'));
-            }
+            this.log(chalk.green('Fetching "' + repo_url + '" into folder: "' + local_root + '/' + repo_name + '" ...'));
+
+            var git = spawn('git', ['clone', repo_url, local_root + '/' + repo_name]);
+            this.fetchedRepos[repo_url] = 'unnused';
+
+            // TODO: provide better stdout/stderr output interpretation!
+
+            // Yeah, thanks http://passy.svbtle.com/partial-application-in-javascript-using-bind ;-)
+            git.on('close', onGitClose.bind(this, repo_name));
+            // git.stdout.on('data', onGitOutput.bind(this, 'stdout'));
+            git.stderr.on('data', onGitOutput.bind(this, 'stderr'));
+        }.bind(this));
+
+        if (!virgin_checkout) {
+            this.log(chalk.green('\nTo update repositories that already existed use "yo puppetmaster:pull all" to fetch their latest revision.\n'));
         }
     }
 });
