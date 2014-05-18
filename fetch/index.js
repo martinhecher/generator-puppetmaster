@@ -3,41 +3,28 @@ var _ = require('underscore'),
     util = require('util'),
     path = require('path'),
     chalk = require('chalk'),
-    yeoman = require('yeoman-generator'),
     spawn = require('child_process').spawn,
     gitutil = require('git-utils'),
-    ConfigParser = require('../core/config-parser');
+    puppetmaster = require('../core/sub-generator');
 
 
-var FetchGenerator = yeoman.generators.Base.extend({
+var FetchGenerator = puppetmaster.SubGenerator.extend({
     init: function() {
-        this.argument('workspaces', {
-            type: Array,
-            required: false
-        });
+        // console.log('[Puppetmaster::FetchGenerator::init] call');
 
-        if (!this.workspaces) {
-            this.workspaces = ['default'];
-        }
+        // Calls the internal initialization of sub-generator funcitonality, including
+        // * reading of config files
+        // * handling of the 'workspace' argument
+        // * etc.
+        this._initSubGenerator();
 
         this.defaultLocalRoot = 'projects';
         this.fetchedRepos = {};
     },
 
-    initConfigParser: function() {
-        var filename = path.join(this.destinationRoot(), './package.json'),
-            filename_generator = path.join(__dirname, '../package.json'),
-            namespace = 'puppetmaster';
-
-        this.pkg = this._readJSONConfig(filename, namespace);
-        this.config = this.pkg[namespace];
-
-        this.pkgGenerator = this._readJSONConfig(filename_generator, namespace);
-    },
-
     info: function() {
-        this.log(chalk.magenta('Using "generator-puppetmaster" version: v' + this.pkgGenerator.version));
-        this.log(chalk.magenta('Jednu projektu, molim. I tri kugle sladoleda!'));
+        this.log(chalk.gray('\nUsing "generator-puppetmaster" version: v' + this.pkgGenerator.version));
+        this.log(chalk.magenta('\nJednu projektu, molim. I tri kugle sladoleda!'));
         this.log(chalk.magenta('Requesting workspaces: ' + JSON.stringify(this.workspaces)) + '\n');
     },
 
@@ -61,7 +48,7 @@ var FetchGenerator = yeoman.generators.Base.extend({
             }
         }
 
-        workspaces = this._selectWorkspaces();
+        workspaces = this._selectWorkspaces(this.config, this.workspaces);
 
         for (var idx0 = 0; idx0 < workspaces.length; idx0++) {
             var workspace = workspaces[idx0],
@@ -122,12 +109,12 @@ var FetchGenerator = yeoman.generators.Base.extend({
             }
 
             if (!fresh_checkout) {
-                this.log(chalk.green('\nTo update repositories that already existed use "yo puppetmaster:pull all" to fetch their latest revision.'));
+                this.log(chalk.green('\nTo update repositories that already existed use "yo puppetmaster:pull all" to fetch their latest revision.\n'));
             }
         }
     }
 });
 
-_.extend(FetchGenerator.prototype, ConfigParser);
+// _.extend(FetchGenerator.prototype, ConfigParser);
 
 module.exports = FetchGenerator;
