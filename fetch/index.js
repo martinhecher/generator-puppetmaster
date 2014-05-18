@@ -3,7 +3,8 @@ var util = require('util'),
     path = require('path'),
     chalk = require('chalk'),
     yeoman = require('yeoman-generator'),
-    spawn = require('child_process').spawn;
+    spawn = require('child_process').spawn,
+    gitutil = require('git-utils');
 
 
 var FetchGenerator = yeoman.generators.Base.extend({
@@ -16,7 +17,6 @@ var FetchGenerator = yeoman.generators.Base.extend({
         if (!this.workspaces) {
             this.workspaces = ['default'];
         }
-        this.log(chalk.green('Requesting workspaces: ' + JSON.stringify(this.workspaces)));
 
         var filename = 'package.json',
             namespace = 'puppetmaster';
@@ -26,7 +26,9 @@ var FetchGenerator = yeoman.generators.Base.extend({
 
         this._readConfig(filename, namespace);
 
+        this.log(chalk.magenta('Using "generator-puppetmaster" version: v' + this.pkgPM.version));
         this.log(chalk.magenta('Jednu projektu, molim. I tri kugle sladoleda!'));
+        this.log(chalk.magenta('Requesting workspaces: ' + JSON.stringify(this.workspaces)) + '\n');
     },
 
     fetchRepos: function() {
@@ -54,7 +56,7 @@ var FetchGenerator = yeoman.generators.Base.extend({
         for (var idx0 = 0; idx0 < workspaces.length; idx0++) {
             var workspace = workspaces[idx0],
                 id = workspace.id || 'default',
-                settings = workspace.settings,
+                settings = workspace.settings || {},
                 projects = workspace.projects;
 
             // TODO: error handling
@@ -70,21 +72,31 @@ var FetchGenerator = yeoman.generators.Base.extend({
 
                 var repo_name = null,
                     repo_endpoint = null,
-                    local_root = settings.localRoot || global_settings.localRoot;
+                    local_root = settings.localRoot || global_settings.localRoot,
+                    fresh_checkout = true;
 
                 // TODO: support for other providers (factory/registry?)
                 if (typeof project === 'string') {
                     // console.log('project: ' + project);
                     repo_name = project;
-                    repo_endpoint = (settings.defaultNamespace || global_settings.defaultNamespace) + '/' + repo_name;
                 } else if (typeof project === 'object') {
                     // console.log('project: ' + JSON.stringify(project));
                     repo_name = project.id;
-                    repo_endpoint = project.url || (settings.defaultNamespace || global_settings.defaultNamespace) + '/' + repo_name;
                     local_root = project.localRoot || local_root;
                 }
 
+                repo_endpoint = project.url || (settings.defaultNamespace || global_settings.defaultNamespace) + '/' + repo_name;
+
                 if (!this.fetchedRepos[repo_endpoint]) {
+                    // First check if the repository already exists at the endpoint:
+                    var repository = gitutil.open(path.join(local_root, repo_name));
+
+                    if (repository) {
+                        console.log('Repository "' + repo_name + '" already exists, leaving as is.');
+                        fresh_checkout = false;
+                        continue;
+                    }
+
                     this.log(chalk.green('Fetching "' + repo_endpoint + '" into folder: "' + local_root + '/' + repo_name + '" ...'));
 
                     var git = spawn('git', ['clone', repo_endpoint, local_root + '/' + repo_name]);
@@ -98,12 +110,23 @@ var FetchGenerator = yeoman.generators.Base.extend({
                     git.stderr.on('data', onGitOutput.bind(this, 'stderr'));
                 }
             }
+
+            if (!fresh_checkout) {
+                this.log(chalk.green('\nTo update repositories that already existed use "yo puppetmaster:pull all" to fetch their latest revision.'));
+            }
         }
     },
 
     _readConfig: function(filename, namespace) {
         // TODO: error handling
-        this.pkg = require(path.join(this.destinationRoot(), filename));
+        this.pkg = JSON.parse(this.readFileAsString(
+            path.join(this.destinationRoot(), './package.json')
+        ));
+
+        this.pkgPM = JSON.parse(this.readFileAsString(
+            path.join(__dirname, '../package.json')
+        ));
+
         this.config = this.pkg[namespace];
     },
 
