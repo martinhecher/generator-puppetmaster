@@ -128,7 +128,7 @@ The 'package.json' example in the 'Creating a new project' section is one suppor
             "url": "git@myserver.com:martinhecher/app-standalone.git"
         },{
             "id": "app-framework",
-            "url": "git@myserver.com:martinhecher/app-standalone.git"
+            "url": "git@myserver.com:martinhecher/app-framework.git"
         }]
     }, {
         "id": "external-libs",
@@ -155,6 +155,28 @@ The above example uses the most general form of a sub-project configuration in t
 ```
 
 Here the 'projects' array consists of objects, each with an 'id', 'url', and 'localRoot' property. In the 'default' workspace configuration those options are automatically derived from the 'settings' object, in the 'external-libs' workspace those options are explicitly given. Local configuration overrides global configuration.
+
+### Updating workspaces
+
+Since v0.4.0 'puppetmaster' can update workspace projects (if they are git-based). To update a specific workspace simply type
+
+> yo puppetmaster:pull _workspace_id_
+
+For each project in the workspace a
+
+> git pull
+
+will be triggered.
+
+The workspace selection for updating works the same as for fetching projects:
+
+> yo puppetmaster:pull
+
+with no workspace name given will update the 'default' workspace.
+
+> yo puppetmaster:pull all
+
+will update all configured workspaces.
 
 ## License
 
