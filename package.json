@@ -1,6 +1,6 @@
 {
   "name": "generator-puppetmaster",
-  "version": "0.4.2",
+  "version": "0.4.4",
   "description": "'puppetmaster' allows you to cast your recurring development tasks into code for easy reuse.",
   "license": "MIT",
   "main": "app/index.js",
@@ -16,10 +16,6 @@
   "scripts": {
     "test": "mocha"
   },
-  "files": [
-    "app",
-    "fetch"
-  ],
   "keywords": [
     "yeoman-generator"
   ],
