@@ -26,6 +26,13 @@ define([
             } else {
                 this.mainRegion.show(MyModule._mainView);
             }
+
+            // For the first show in the lifetime of the _mainView the events hash is correctly
+            // evaluated. When the _mainView gets closed and is reopened again, the events
+            // have to be delegated manually, otherwise e.g. the click events will not fire.
+            // That's what the next line is for:
+            MyModule._mainView.delegateEvents();
+
         }.bind(this));
 
         console.log('[WorkbenchUI.<%= type %>.<%= name %>] started');
